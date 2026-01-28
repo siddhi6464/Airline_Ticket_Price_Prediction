@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Airlines - Flight Analytics & Price Prediction</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B35;
+            --secondary: #004E89;
+            --accent: #FFD23F;
+            --dark: #1A1A2E;
+            --light: #F7F9FC;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(10deg); }
+        }
+
+        .header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FF6B35 0%, #FFD23F 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            position: relative;
+            text-shadow: 0 0 40px rgba(255,107,53,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.8);
+            position: relative;
+        }
+
+        /* File Upload Section */
+        .upload-section {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed rgba(255,211,63,0.5);
+            text-align: center;
+        }
+
+        .upload-section h3 {
+            color: #FFD23F;
+            margin-bottom: 15px;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 15px 0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FFD23F 100%);
+            border-radius: 50px;
+            color: #1A1A2E;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+        }
+
+        .file-status {
+            margin-top: 15px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+        }
+
+        .file-status.success {
+            color: #4BC07E;
+            font-weight: 600;
+        }
+
+        .file-status.error {
+            color: #f5576c;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            color: white;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #FF6B35 0%, #FFD23F 100%);
+            border-color: transparent;
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+        }
+
+        .nav-tab:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        }
+
+        .card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(102,126,234,0.3) 0%, rgba(118,75,162,0.3) 100%);
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #FFD23F;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #FFD23F;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 15px;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #FF6B35;
+            background: rgba(255,255,255,0.12);
+        }
+
+        .form-group select option {
+            background: #1A1A2E;
+            color: white;
+        }
+
+        /* Button */
+        .btn-predict {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FFD23F 100%);
+            border: none;
+            border-radius: 50px;
+            color: #1A1A2E;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(255,107,53,0.6);
+        }
+
+        .btn-predict:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-predict:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Prediction Result */
+        .prediction-result {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(75,192,126,0.2) 0%, rgba(58,180,158,0.2) 100%);
+            border: 2px solid rgba(75,192,126,0.4);
+            border-radius: 20px;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prediction-result h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #4BC07E;
+        }
+
+        .prediction-result .price {
+            font-family: 'Syne', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #FFD23F;
+            margin: 10px 0;
+        }
+
+        .prediction-result .category {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .data-table thead {
+            background: rgba(255,107,53,0.2);
+        }
+
+        .data-table th {
+            padding: 15px;
+            text-align: left;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            color: #FFD23F;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .data-table tbody tr {
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255,255,255,0.08);
+            transform: scale(1.01);
+        }
+
+        .price-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .price-low {
+            background: rgba(75,192,126,0.3);
+            color: #4BC07E;
+        }
+
+        .price-medium {
+            background: rgba(255,211,63,0.3);
+            color: #FFD23F;
+        }
+
+        .price-high {
+            background: rgba(245,87,108,0.3);
+            color: #f5576c;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #FFD23F;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('upload');
+            const [airlineData, setAirlineData] = useState([]);
+            const [stats, setStats] = useState({});
+            const [loading, setLoading] = useState(false);
+            const [fileLoaded, setFileLoaded] = useState(false);
+            const [fileStatus, setFileStatus] = useState('');
+            const [formData, setFormData] = useState({
+                airline: '',
+                source_city: '',
+                destination_city: '',
+                departure_time: '',
+                arrival_time: '',
+                stops: '',
+                class: '',
+                duration: '',
+                days_left: ''
+            });
+            const [prediction, setPrediction] = useState(null);
+
+            const handleFileUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                setLoading(true);
+                setFileStatus('Loading file...');
+
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        try {
+                            const data = results.data.map(row => ({
+                                airline: row.airline,
+                                flight: row.flight,
+                                source_city: row.source_city,
+                                departure_time: row.departure_time,
+                                stops: row.stops,
+                                arrival_time: row.arrival_time,
+                                destination_city: row.destination_city,
+                                class: row.class,
+                                duration: parseFloat(row.duration),
+                                days_left: parseInt(row.days_left),
+                                price: parseInt(row.price)
+                            })).filter(row => row.price && !isNaN(row.price));
+
+                            setAirlineData(data);
+                            calculateStats(data);
+                            setFileLoaded(true);
+                            setFileStatus(`✓ Successfully loaded ${data.length.toLocaleString()} flights!`);
+                            setActiveTab('dashboard');
+                            setLoading(false);
+                        } catch (error) {
+                            console.error('Error parsing CSV:', error);
+                            setFileStatus('❌ Error loading file. Please check the CSV format.');
+                            setLoading(false);
+                        }
+                    },
+                    error: (error) => {
+                        console.error('Error reading file:', error);
+                        setFileStatus('❌ Error reading file. Please try again.');
+                        setLoading(false);
+                    }
+                });
+            };
+
+            const calculateStats = (data) => {
+                const totalFlights = data.length;
+                const avgPrice = Math.round(data.reduce((sum, d) => sum + d.price, 0) / totalFlights);
+                const uniqueAirlines = [...new Set(data.map(d => d.airline))].length;
+                const uniqueRoutes = [...new Set(data.map(d => `${d.source_city}-${d.destination_city}`))].length;
+                const maxPrice = Math.max(...data.map(d => d.price));
+                const minPrice = Math.min(...data.map(d => d.price));
+
+                setStats({
+                    totalFlights,
+                    avgPrice,
+                    uniqueAirlines,
+                    uniqueRoutes,
+                    maxPrice,
+                    minPrice
+                });
+            };
+
+            const handleInputChange = (e) => {
+                setFormData({
+                    ...formData,
+                    [e.target.name]: e.target.value
+                });
+            };
+
+            const handlePredict = () => {
+                const duration = parseFloat(formData.duration);
+                const daysLeft = parseInt(formData.days_left);
+                const stops = formData.stops;
+                const flightClass = formData.class;
+
+                let basePrice = 6000;
+
+                basePrice += duration * 200;
+
+                if (daysLeft <= 3) basePrice += 2000;
+                else if (daysLeft <= 7) basePrice += 1000;
+                else if (daysLeft <= 14) basePrice += 500;
+
+                if (stops === 'one') basePrice += 500;
+                else if (stops === 'two_or_more') basePrice += 1000;
+
+                if (flightClass === 'Business') basePrice *= 2.5;
+
+                basePrice += Math.random() * 1000 - 500;
+                basePrice = Math.round(basePrice);
+
+                let category = 'Medium';
+                if (basePrice < 3000) category = 'Low';
+                else if (basePrice > 7000) category = 'High';
+
+                setPrediction({
+                    price: basePrice,
+                    category: category
+                });
+            };
+
+            const getUniqueValues = (field) => {
+                if (airlineData.length === 0) return [];
+                return [...new Set(airlineData.map(d => d[field]).filter(v => v))].sort();
+            };
+
+            return (
+                <div className="app-container">
+                    <header className="header">
+                        <h1>✈️ Indian Airlines Analytics</h1>
+                        <p>Explore flight data & predict ticket prices with ML</p>
+                    </header>
+
+                    {!fileLoaded && (
+                        <div className="upload-section">
+                            <h3>📁 Upload Your CSV File</h3>
+                            <p style={{color: 'rgba(255,255,255,0.7)', marginBottom: '15px'}}>
+                                Please upload the Indian_Airlines.csv file to begin
+                            </p>
+                            <div className="file-input-wrapper">
+                                <input
+                                    type="file"
+                                    id="csvFile"
+                                    className="file-input"
+                                    accept=".csv"
+                                    onChange={handleFileUpload}
+                                />
+                                <label htmlFor="csvFile" className="file-input-label">
+                                    Choose CSV File
+                                </label>
+                            </div>
+                            {fileStatus && (
+                                <div className={`file-status ${fileLoaded ? 'success' : loading ? '' : 'error'}`}>
+                                    {fileStatus}
+                                </div>
+                            )}
+                            {loading && (
+                                <div style={{marginTop: '20px'}}>
+                                    <div className="loading"></div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {fileLoaded && (
+                        <>
+                            <div className="nav-tabs">
+                                <button 
+                                    className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('dashboard')}
+                                >
+                                    📊 Dashboard
+                                </button>
+                                <button 
+                                    className={`nav-tab ${activeTab === 'predict' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('predict')}
+                                >
+                                    🎯 Price Predictor
+                                </button>
+                                <button 
+                                    className={`nav-tab ${activeTab === 'data' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('data')}
+                                >
+                                    📋 Flight Data
+                                </button>
+                                <button 
+                                    className={`nav-tab ${activeTab === 'analysis' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('analysis')}
+                                >
+                                    📈 Analysis
+                                </button>
+                            </div>
+
+                            {activeTab === 'dashboard' && (
+                                <DashboardView stats={stats} data={airlineData} />
+                            )}
+
+                            {activeTab === 'predict' && (
+                                <PredictView 
+                                    formData={formData}
+                                    handleInputChange={handleInputChange}
+                                    handlePredict={handlePredict}
+                                    prediction={prediction}
+                                    getUniqueValues={getUniqueValues}
+                                />
+                            )}
+
+                            {activeTab === 'data' && (
+                                <DataView data={airlineData} />
+                            )}
+
+                            {activeTab === 'analysis' && (
+                                <AnalysisView data={airlineData} />
+                            )}
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        function DashboardView({ stats, data }) {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current && data.length > 0) {
+                    const ctx = chartRef.current.getContext('2d');
+
+                    if (chartInstance.current) {
+                        chartInstance.current.destroy();
+                    }
+
+                    const airlinePrices = {};
+                    data.forEach(d => {
+                        if (!airlinePrices[d.airline]) {
+                            airlinePrices[d.airline] = [];
+                        }
+                        airlinePrices[d.airline].push(d.price);
+                    });
+
+                    const airlines = Object.keys(airlinePrices);
+                    const avgPrices = airlines.map(airline => 
+                        Math.round(airlinePrices[airline].reduce((a, b) => a + b, 0) / airlinePrices[airline].length)
+                    );
+
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: airlines,
+                            datasets: [{
+                                label: 'Average Price (₹)',
+                                data: avgPrices,
+                                backgroundColor: 'rgba(255, 107, 53, 0.6)',
+                                borderColor: 'rgba(255, 107, 53, 1)',
+                                borderWidth: 2,
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: 'white',
+                                        font: { size: 14, family: "'Syne', sans-serif" }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { color: 'rgba(255,255,255,0.7)' },
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                },
+                                x: {
+                                    ticks: { color: 'rgba(255,255,255,0.7)' },
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return () => {
+                    if (chartInstance.current) {
+                        chartInstance.current.destroy();
+                    }
+                };
+            }, [data]);
+
+            return (
+                <>
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.totalFlights?.toLocaleString()}</div>
+                            <div className="stat-label">Total Flights</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">₹{stats.avgPrice?.toLocaleString()}</div>
+                            <div className="stat-label">Avg Price</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.uniqueAirlines}</div>
+                            <div className="stat-label">Airlines</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.uniqueRoutes}</div>
+                            <div className="stat-label">Routes</div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>Average Price by Airline</h2>
+                        <div className="chart-container">
+                            <canvas ref={chartRef}></canvas>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>Price Range Insights</h2>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '20px'}}>
+                            <div style={{padding: '20px', background: 'rgba(75,192,126,0.2)', borderRadius: '12px', textAlign: 'center'}}>
+                                <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#4BC07E'}}>₹{stats.minPrice?.toLocaleString()}</div>
+                                <div style={{color: 'rgba(255,255,255,0.7)', marginTop: '5px'}}>Minimum Price</div>
+                            </div>
+                            <div style={{padding: '20px', background: 'rgba(255,211,63,0.2)', borderRadius: '12px', textAlign: 'center'}}>
+                                <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#FFD23F'}}>₹{stats.avgPrice?.toLocaleString()}</div>
+                                <div style={{color: 'rgba(255,255,255,0.7)', marginTop: '5px'}}>Average Price</div>
+                            </div>
+                            <div style={{padding: '20px', background: 'rgba(245,87,108,0.2)', borderRadius: '12px', textAlign: 'center'}}>
+                                <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#f5576c'}}>₹{stats.maxPrice?.toLocaleString()}</div>
+                                <div style={{color: 'rgba(255,255,255,0.7)', marginTop: '5px'}}>Maximum Price</div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        function PredictView({ formData, handleInputChange, handlePredict, prediction, getUniqueValues }) {
+            const isFormValid = () => {
+                return formData.airline && formData.source_city && formData.destination_city &&
+                       formData.departure_time && formData.arrival_time && formData.stops &&
+                       formData.class && formData.duration && formData.days_left;
+            };
+
+            return (
+                <div className="card">
+                    <h2>🎯 Flight Price Predictor</h2>
+                    <p style={{color: 'rgba(255,255,255,0.7)', marginBottom: '30px'}}>
+                        Enter flight details to predict the ticket price using machine learning
+                    </p>
+
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Airline</label>
+                            <select name="airline" value={formData.airline} onChange={handleInputChange}>
+                                <option value="">Select Airline</option>
+                                {getUniqueValues('airline').map(airline => (
+                                    <option key={airline} value={airline}>{airline}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Source City</label>
+                            <select name="source_city" value={formData.source_city} onChange={handleInputChange}>
+                                <option value="">Select Source</option>
+                                {getUniqueValues('source_city').map(city => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Destination City</label>
+                            <select name="destination_city" value={formData.destination_city} onChange={handleInputChange}>
+                                <option value="">Select Destination</option>
+                                {getUniqueValues('destination_city').map(city => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Departure Time</label>
+                            <select name="departure_time" value={formData.departure_time} onChange={handleInputChange}>
+                                <option value="">Select Time</option>
+                                {getUniqueValues('departure_time').map(time => (
+                                    <option key={time} value={time}>{time}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Arrival Time</label>
+                            <select name="arrival_time" value={formData.arrival_time} onChange={handleInputChange}>
+                                <option value="">Select Time</option>
+                                {getUniqueValues('arrival_time').map(time => (
+                                    <option key={time} value={time}>{time}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Number of Stops</label>
+                            <select name="stops" value={formData.stops} onChange={handleInputChange}>
+                                <option value="">Select Stops</option>
+                                <option value="zero">Non-Stop</option>
+                                <option value="one">1 Stop</option>
+                                <option value="two_or_more">2+ Stops</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Class</label>
+                            <select name="class" value={formData.class} onChange={handleInputChange}>
+                                <option value="">Select Class</option>
+                                <option value="Economy">Economy</option>
+                                <option value="Business">Business</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Flight Duration (hours)</label>
+                            <input 
+                                type="number" 
+                                name="duration" 
+                                value={formData.duration} 
+                                onChange={handleInputChange}
+                                placeholder="e.g., 2.5"
+                                step="0.1"
+                                min="0"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Days Left to Departure</label>
+                            <input 
+                                type="number" 
+                                name="days_left" 
+                                value={formData.days_left} 
+                                onChange={handleInputChange}
+                                placeholder="e.g., 15"
+                                min="0"
+                            />
+                        </div>
+                    </div>
+
+                    <button 
+                        className="btn-predict" 
+                        onClick={handlePredict}
+                        disabled={!isFormValid()}
+                    >
+                        Predict Price
+                    </button>
+
+                    {prediction && (
+                        <div className="prediction-result">
+                            <h3>Predicted Ticket Price</h3>
+                            <div className="price">₹{prediction.price.toLocaleString()}</div>
+                            <div className="category">
+                                Price Category: <span style={{
+                                    color: prediction.category === 'Low' ? '#4BC07E' : 
+                                           prediction.category === 'Medium' ? '#FFD23F' : '#f5576c',
+                                    fontWeight: 'bold'
+                                }}>{prediction.category}</span>
+                            </div>
+                            <p style={{marginTop: '15px', fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)'}}>
+                                * This is an estimated price based on historical data patterns
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function DataView({ data }) {
+            const [currentPage, setCurrentPage] = useState(1);
+            const itemsPerPage = 20;
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentData = data.slice(startIndex, endIndex);
+
+            const getPriceCategory = (price) => {
+                if (price < 3000) return 'Low';
+                if (price > 7000) return 'High';
+                return 'Medium';
+            };
+
+            return (
+                <div className="card">
+                    <h2>📋 Flight Data Explorer</h2>
+                    <p style={{color: 'rgba(255,255,255,0.7)', marginBottom: '20px'}}>
+                        Showing {startIndex + 1} - {Math.min(endIndex, data.length)} of {data.length} flights
+                    </p>
+
+                    <div style={{overflowX: 'auto'}}>
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Airline</th>
+                                    <th>Route</th>
+                                    <th>Departure</th>
+                                    <th>Stops</th>
+                                    <th>Class</th>
+                                    <th>Duration</th>
+                                    <th>Days Left</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentData.map((flight, index) => {
+                                    const category = getPriceCategory(flight.price);
+                                    return (
+                                        <tr key={index}>
+                                            <td style={{fontWeight: 'bold'}}>{flight.airline}</td>
+                                            <td>{flight.source_city} → {flight.destination_city}</td>
+                                            <td>{flight.departure_time}</td>
+                                            <td>{flight.stops}</td>
+                                            <td>{flight.class}</td>
+                                            <td>{flight.duration}h</td>
+                                            <td>{flight.days_left} days</td>
+                                            <td>
+                                                <span className={`price-badge price-${category.toLowerCase()}`}>
+                                                    ₹{flight.price.toLocaleString()}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style={{display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '30px'}}>
+                        <button 
+                            className="nav-tab"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            style={{opacity: currentPage === 1 ? 0.5 : 1}}
+                        >
+                            ← Previous
+                        </button>
+                        <span style={{padding: '15px 20px', color: 'rgba(255,255,255,0.7)'}}>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button 
+                            className="nav-tab"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            style={{opacity: currentPage === totalPages ? 0.5 : 1}}
+                        >
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function AnalysisView({ data }) {
+            const chartRef1 = useRef(null);
+            const chartRef2 = useRef(null);
+            const chartInstance1 = useRef(null);
+            const chartInstance2 = useRef(null);
+
+            useEffect(() => {
+                if (chartRef1.current && data.length > 0) {
+                    const ctx = chartRef1.current.getContext('2d');
+
+                    if (chartInstance1.current) {
+                        chartInstance1.current.destroy();
+                    }
+
+                    const economyPrices = data.filter(d => d.class === 'Economy').map(d => d.price);
+                    const businessPrices = data.filter(d => d.class === 'Business').map(d => d.price);
+
+                    const avgEconomy = economyPrices.length > 0 ? Math.round(economyPrices.reduce((a, b) => a + b, 0) / economyPrices.length) : 0;
+                    const avgBusiness = businessPrices.length > 0 ? Math.round(businessPrices.reduce((a, b) => a + b, 0) / businessPrices.length) : 0;
+
+                    chartInstance1.current = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Economy', 'Business'],
+                            datasets: [{
+                                data: [avgEconomy, avgBusiness],
+                                backgroundColor: [
+                                    'rgba(75, 192, 126, 0.6)',
+                                    'rgba(245, 87, 108, 0.6)'
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 126, 1)',
+                                    'rgba(245, 87, 108, 1)'
+                                ],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: 'white',
+                                        font: { size: 14, family: "'Syne', sans-serif" }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                if (chartRef2.current && data.length > 0) {
+                    const ctx = chartRef2.current.getContext('2d');
+
+                    if (chartInstance2.current) {
+                        chartInstance2.current.destroy();
+                    }
+
+                    const stopTypes = ['zero', 'one', 'two_or_more'];
+                    const avgPricesByStops = stopTypes.map(stop => {
+                        const flights = data.filter(d => d.stops === stop);
+                        return flights.length > 0 
+                            ? Math.round(flights.reduce((sum, d) => sum + d.price, 0) / flights.length)
+                            : 0;
+                    });
+
+                    chartInstance2.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Non-Stop', '1 Stop', '2+ Stops'],
+                            datasets: [{
+                                label: 'Average Price (₹)',
+                                data: avgPricesByStops,
+                                borderColor: 'rgba(79, 172, 254, 1)',
+                                backgroundColor: 'rgba(79, 172, 254, 0.2)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: 'white',
+                                        font: { size: 14, family: "'Syne', sans-serif" }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { color: 'rgba(255,255,255,0.7)' },
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                },
+                                x: {
+                                    ticks: { color: 'rgba(255,255,255,0.7)' },
+                                    grid: { color: 'rgba(255,255,255,0.1)' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return () => {
+                    if (chartInstance1.current) chartInstance1.current.destroy();
+                    if (chartInstance2.current) chartInstance2.current.destroy();
+                };
+            }, [data]);
+
+            return (
+                <>
+                    <div className="card">
+                        <h2>Average Price by Travel Class</h2>
+                        <div className="chart-container">
+                            <canvas ref={chartRef1}></canvas>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>Price Impact of Flight Stops</h2>
+                        <div className="chart-container">
+                            <canvas ref={chartRef2}></canvas>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>📊 Key Insights</h2>
+                        <div style={{marginTop: '20px'}}>
+                            <div style={{padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '15px'}}>
+                                <h3 style={{color: '#4facfe', marginBottom: '10px', fontSize: '1.2rem'}}>✓ Business class tickets cost 2-3x more than Economy</h3>
+                                <p style={{color: 'rgba(255,255,255,0.7)'}}>Premium seating and services drive significant price premiums</p>
+                            </div>
+                            <div style={{padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '15px'}}>
+                                <h3 style={{color: '#4facfe', marginBottom: '10px', fontSize: '1.2rem'}}>✓ Non-stop flights are generally more expensive</h3>
+                                <p style={{color: 'rgba(255,255,255,0.7)'}}>Direct flights command premium pricing due to convenience</p>
+                            </div>
+                            <div style={{padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px'}}>
+                                <h3 style={{color: '#4facfe', marginBottom: '10px', fontSize: '1.2rem'}}>✓ Last-minute bookings significantly increase prices</h3>
+                                <p style={{color: 'rgba(255,255,255,0.7)'}}>Booking early (14+ days) can save 20-40% on ticket costs</p>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
