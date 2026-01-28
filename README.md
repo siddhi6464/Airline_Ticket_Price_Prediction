@@ -1,137 +1,177 @@
-# ✈️ Airline Management System with Price Prediction & Data Pipelines
+# ✈️ Indian Airlines – Flight Analytics & Price Prediction Web Application
 
-This project is an **Airline Management System** focused on analyzing airline data and predicting flight ticket prices using data analytics and machine learning techniques. It also demonstrates the use of **data pipelines** for structured data processing, cleaning, and feature preparation.
+A comprehensive **Airline Management & Analytics Web Application** for analyzing Indian airline flight data and predicting ticket prices using **machine learning** and **data pipelines**.
 
 ---
 
 ## 📌 Project Overview
 
-The Airline Management System aims to streamline airline-related data operations such as flight analysis, fare trends, and price prediction. Using real-world airline data, the project builds an end-to-end pipeline that transforms raw data into meaningful insights and predictive models.
+This project focuses on end-to-end airline data analysis, structured data pipelines, and ticket price prediction. It transforms raw airline data into meaningful insights using exploratory analysis, visual dashboards, and a machine learning–powered price predictor.
 
-The system is designed as a **data engineering + machine learning mini-project**, making it suitable for academic evaluation and portfolio demonstration.
+The system is designed as a **Data Engineering + Machine Learning mini-project**, suitable for academic evaluation, GitHub portfolios, and interviews.
 
 ---
 
 ## 🎯 Objectives
 
-- Analyze airline and flight data
-- Build structured data pipelines
-- Predict airline ticket prices using machine learning
-- Understand factors affecting airfare
-- Demonstrate practical data preprocessing and modeling skills
+- Analyze airline and flight data  
+- Build structured data pipelines  
+- Predict airline ticket prices using ML  
+- Understand factors affecting airfare  
+- Demonstrate real-world data preprocessing and modeling skills  
+
+---
+
+## ✨ Features
+
+### 📊 Dashboard
+- Real-time statistics (Total Flights, Average Price, Airlines, Routes)
+- Interactive charts for average price by airline
+- Price range insights (Min / Avg / Max)
+
+### 🎯 Price Predictor
+- ML-powered ticket price prediction
+- Predict price category: **Low / Medium / High**
+- Based on **Random Forest Classification**
+- Uses flight details such as airline, route, duration, stops, class, and days left
+
+### 📋 Flight Data Explorer
+- Browse all available flight data
+- Paginated table view (20 flights per page)
+- Color-coded price categories
+- Detailed flight information
+
+### 📈 Analysis
+- Economy vs Business class price comparison
+- Impact of stops on ticket pricing
+- Key airline pricing insights
 
 ---
 
 ## 🗂️ Project Files
 
-- **`Indian Airlines.csv`**  
-  Contains airline-related data used for analysis and prediction.
+- **`Indian_Airlines.csv`**  
+  Dataset containing Indian airline flight and pricing data
 
 - **`DE_miniproject.ipynb`**  
   Jupyter Notebook implementing:
-  - Data loading
+  - Data ingestion
   - Data cleaning & preprocessing
   - Exploratory Data Analysis (EDA)
   - Feature engineering
-  - Price prediction model
-  - Pipeline workflow
+  - ML model training
+  - Price prediction pipeline
+
+- **`indian_airlines_app.html`**  
+  Standalone frontend web application
+
+- **`app.py`** *(optional)*  
+  Flask backend for server-side processing
 
 ---
 
 ## 🔄 Data Pipeline Workflow
 
-1. **Data Ingestion**
-   - Load airline dataset from CSV
-
-2. **Data Cleaning**
-   - Handle missing values
-   - Remove inconsistencies
-   - Format columns
-
-3. **Feature Engineering**
-   - Extract meaningful features
-   - Encode categorical variables
-
-4. **Exploratory Data Analysis**
-   - Understand price trends
-   - Analyze airline and route patterns
-
-5. **Model Training**
-   - Train machine learning model for price prediction
-
-6. **Prediction & Evaluation**
-   - Predict ticket prices
-   - Evaluate model performance
+1. **Data Ingestion** – Load CSV dataset  
+2. **Data Cleaning** – Handle missing & inconsistent values  
+3. **Feature Engineering** – Encode categorical features  
+4. **EDA** – Analyze trends and pricing patterns  
+5. **Model Training** – Train Random Forest classifier  
+6. **Prediction & Evaluation** – Predict ticket price category  
 
 ---
 
-## 📊 Price Prediction
+## 📊 Price Prediction Model
 
-The project includes a **ticket price prediction model** that estimates airfare based on various features such as:
-- Airline
-- Route
-- Duration
-- Stops
-- Travel date
-
-This helps demonstrate how predictive analytics can support airline pricing strategies.
+- **Algorithm**: Random Forest Classifier  
+- **Features**:
+  - Airline
+  - Source City
+  - Destination City
+  - Departure & Arrival Time
+  - Stops
+  - Class
+  - Duration
+  - Days Left
+- **Target**:
+  - Low (< ₹3000)
+  - Medium (₹3000–₹7000)
+  - High (> ₹7000)
+- **Training Split**: 80% Train / 20% Test  
 
 ---
 
 ## 🛠️ Technologies Used
 
-- Python  
-- Pandas  
-- NumPy  
-- Matplotlib / Seaborn  
-- Scikit-learn  
-- Jupyter Notebook  
+- **Frontend**: React.js, Chart.js  
+- **Styling**: Custom CSS (gradients & animations)  
+- **Backend (Optional)**: Flask + Python  
+- **Machine Learning**: scikit-learn  
+- **Data Processing**: pandas, numpy  
+- **Visualization**: Matplotlib, Seaborn  
+- **Notebook**: Jupyter Notebook  
 
 ---
 
 ## 🚀 How to Run the Project
 
-1. Clone the repository
-   ```bash
-   git clone https://github.com/your-username/airline-management-system.git
-   
-## 2.Navigate to the project directory
+### Option 1: Standalone Web Application
+1. Open `indian_airlines_app.html` in your browser  
+2. Ensure `Indian_Airlines.csv` is in the same directory  
+3. No server setup required  
+
+---
+
+### Option 2: Jupyter Notebook (Data Pipeline & ML)
+
+## 1. Clone the repository
+```bash
+git clone https://github.com/your-username/airline-management-system.git
+Navigate to the project directory
 cd airline-management-system
 
-## 3.Install required libraries
+## 2.Install required libraries
 pip install pandas numpy matplotlib seaborn scikit-learn
 
-## 4.Open Jupyter Notebook
+## 3.Open Jupyter Notebook
 jupyter notebook
 
-## Run DE_miniproject.ipynb
+## Run DE_miniproject.ipynb cell by cell
 
-## 📚 Learning Outcomes
+## Option 3: Flask Backend (Optional)
+pip install -r requirements.txt
+python app.py
 
-Understanding real-world airline datasets
+Open:
+http://localhost:5000
 
-Designing data pipelines
+## 📚 Key Insights
 
-Performing exploratory data analysis
+✓ Business class tickets cost 2–3x more than Economy
+✓ Non-stop flights are generally more expensive
+✓ Booking early (14+ days) can reduce prices by 20–40%
 
-Building and evaluating ML models
+## 🌐 Browser Compatibility
 
-Applying price prediction techniques
+Chrome 90+
+Firefox 88+
+Safari 14+
+Edge 90+
 
 ## 🔮 Future Enhancements
 
-Real-time price prediction
-
-Integration with live airline APIs
-
-Advanced ML models
-
-Deployment as a web application
-
-Dashboard for airline analytics
+Add advanced ML models (XGBoost, Neural Networks)
+Real-time price tracking
+Flight search & filters
+PDF report export
+User authentication
+Live airline API integration
 
 ## 🧑‍💻 Author
 
 Siddhi Agarwal
 B.Tech Computer Science & Engineering
 MIT World Peace University
+
+## 📄 License
+This project is developed for educational and analytical purposes.
